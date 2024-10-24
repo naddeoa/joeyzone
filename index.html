@@ -3,8 +3,9 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>✨ JOEY ZONE ✨</title>
+    <title>🎆 ✨ JOEY ZONE ✨ 🎆</title>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/particles.js/2.0.0/particles.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/fireworks/1.0.0/fireworks.min.js"></script>
     <style>
       * {
         margin: 0;
@@ -20,6 +21,7 @@
         margin: 0 auto;
         background-color: #f5f5f5;
         position: relative;
+        overflow-x: hidden; /* Prevent horizontal scroll on mobile */
       }
       #particles-js {
         position: fixed;
@@ -64,10 +66,20 @@
         text-align: center;
         margin: 0;
         font-size: 3em;
+        font-family: "Comic Sans MS", cursive;
         animation:
           rainbow 3s linear infinite,
-          bounce 1s ease infinite;
+          bounce 1s ease infinite,
+          rotate 4s linear infinite;
         text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.3);
+      }
+      @keyframes rotate {
+        from {
+          transform: rotate(-5deg);
+        }
+        to {
+          transform: rotate(5deg);
+        }
       }
       @keyframes bounce {
         0%,
@@ -82,6 +94,13 @@
         margin-bottom: 3rem;
         transform-origin: center;
         animation: wobble 10s ease-in-out infinite;
+        opacity: 0;
+        transform: translateY(100px);
+        transition: all 1s ease;
+      }
+      .image-container.visible {
+        opacity: 1;
+        transform: translateY(0);
       }
       @keyframes wobble {
         0%,
@@ -100,6 +119,7 @@
         margin-bottom: 1rem;
         color: #444;
         animation: rainbow 3s linear infinite;
+        font-family: "Comic Sans MS", cursive;
       }
       .image-wrapper {
         background: white;
@@ -107,32 +127,47 @@
         border-radius: 8px;
         box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
         transition: transform 0.3s ease;
+        position: relative;
+        touch-action: manipulation; /* Better touch handling */
       }
-      .image-wrapper:hover {
-        transform: scale(1.02) rotate(1deg);
-        box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
+      .image-wrapper:active {
+        transform: scale(0.98);
       }
       img {
         width: 100%;
         height: auto;
         border-radius: 4px;
         display: block;
+        user-select: none; /* Prevent image selection on mobile */
+        -webkit-user-select: none;
+        -webkit-touch-callout: none;
       }
       .description {
         margin-top: 1rem;
         color: #666;
         font-size: 1.2rem;
+        font-family: "Comic Sans MS", cursive;
+        animation: party 2s infinite;
+      }
+      @keyframes party {
+        0% {
+          transform: scale(1);
+        }
+        50% {
+          transform: scale(1.05);
+        }
+        100% {
+          transform: scale(1);
+        }
       }
       h2 {
         text-align: center;
         margin-bottom: 2rem;
         animation: rainbow 3s linear infinite;
+        font-family: "Comic Sans MS", cursive;
       }
 
       /* Rainbow border animation */
-      .image-wrapper {
-        position: relative;
-      }
       .image-wrapper::before {
         content: "";
         position: absolute;
@@ -170,10 +205,44 @@
           background-position: 100% 50%;
         }
       }
+
+      /* Emoji explosion animation */
+      @keyframes explode {
+        0% {
+          transform: translate(-50%, -50%) scale(0.5);
+          opacity: 1;
+        }
+        100% {
+          transform: translate(-50%, -50%) translate(var(--tx), var(--ty))
+            scale(1.5);
+          opacity: 0;
+        }
+      }
+
+      .emoji {
+        position: absolute;
+        font-size: 1.5rem;
+        pointer-events: none;
+        z-index: 1000;
+        transform-origin: center;
+      }
     </style>
   </head>
   <body>
     <div id="particles-js"></div>
+    <div
+      id="fireworks-container"
+      style="
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        pointer-events: none;
+        z-index: 3;
+      "
+    ></div>
+
     <div class="content">
       <h1>✨ JOEY ZONE ✨</h1>
       <h2>The Phases of Joey</h2>
@@ -185,7 +254,8 @@
             alt="Cute joey hugging his teacher's arm"
           />
           <p class="description">
-            Cute, adorable joey hugging his teacher's arm on the cover of the NYTimes.
+            Cute, adorable joey hugging his teacher's arm on the cover of the
+            NYTimes.
           </p>
         </div>
       </div>
@@ -233,10 +303,11 @@
     </div>
 
     <script>
+      // Reduced particle count for better mobile performance
       particlesJS("particles-js", {
         particles: {
           number: {
-            value: 100,
+            value: 50,
             density: {
               enable: true,
               value_area: 800,
@@ -254,7 +325,7 @@
           },
           move: {
             enable: true,
-            speed: 3,
+            speed: 2,
             direction: "none",
             random: true,
             out_mode: "out",
@@ -264,11 +335,88 @@
           detect_on: "canvas",
           events: {
             onhover: {
-              enable: true,
-              mode: "repulse",
+              enable: false, // Disabled for better mobile performance
             },
           },
         },
+      });
+
+      // Emoji explosion function
+      function createEmojiExplosion(x, y) {
+        const emojis = [
+          "✨",
+          "💫",
+          "⭐",
+          "🌟",
+          "💥",
+          "🎵",
+          "🎶",
+          "🎸",
+          "🎊",
+          "🎉",
+        ];
+        const numEmojis = 12;
+
+        for (let i = 0; i < numEmojis; i++) {
+          const emoji = document.createElement("div");
+          emoji.className = "emoji";
+          emoji.textContent = emojis[Math.floor(Math.random() * emojis.length)];
+
+          // Calculate random angle and distance
+          const angle = (i / numEmojis) * 2 * Math.PI;
+          const distance = 100; // pixels to travel
+
+          // Calculate translation
+          const tx = Math.cos(angle) * distance;
+          const ty = Math.sin(angle) * distance;
+
+          emoji.style.cssText = `
+            left: ${x}px;
+            top: ${y}px;
+            --tx: ${tx}px;
+            --ty: ${ty}px;
+            animation: explode 1s ease-out forwards;
+            position: fixed;
+          `;
+
+          document.body.appendChild(emoji);
+
+          // Clean up emoji after animation
+          setTimeout(() => emoji.remove(), 1000);
+        }
+      }
+
+      // Handle both click and touch events for images
+      document.querySelectorAll(".image-wrapper").forEach((wrapper) => {
+        const handleInteraction = (e) => {
+          const rect = wrapper.getBoundingClientRect();
+          const x = (e.touches ? e.touches[0].clientX : e.clientX) - rect.left;
+          const y = (e.touches ? e.touches[0].clientY : e.clientY) - rect.top;
+          createEmojiExplosion(x + rect.left, y + rect.top);
+        };
+
+        wrapper.addEventListener("click", handleInteraction);
+        wrapper.addEventListener("touchstart", handleInteraction, {
+          passive: true,
+        });
+      });
+
+      // Intersection Observer for scroll animations
+      const observer = new IntersectionObserver((entries) => {
+        entries.forEach((entry) => {
+          if (entry.isIntersecting) {
+            entry.target.classList.add("visible");
+            const rect = entry.target.getBoundingClientRect();
+            createEmojiExplosion(
+              rect.left + rect.width / 2,
+              rect.top + rect.height / 2,
+            );
+          }
+        });
+      });
+
+      document.querySelectorAll(".image-container").forEach((container) => {
+        observer.observe(container);
       });
     </script>
   </body>
